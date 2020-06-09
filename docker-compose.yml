@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.${ENVIRONMENT:-dev}
+    ports:
+      - 3001:3000
+    # environment:
+    # if you ENVIRONMENT=prod, comment the volume section
+    volumes:
+      - ./api:/usr/app/
+      - /usr/app/node_modules
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.${ENVIRONMENT:-dev}
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/usr/app/
+      - /usr/app/node_modules    
+    stdin_open: true # will crash the client if not set https://github.com/facebook/create-react-app/issues/8688#issuecomment-602110747
+  
+  database:
+    image: mongo
+    environment: 
+      - MONGO_INITDB_DATABASE=my-database
+      - MONGO_INITDB_ROOT_USERNAME=jimmy
+      - MONGO_INITDB_ROOT_PASSWORD=********
+    ports:
+      - 27017:27017
+      - 27018:27018
+      - 27019:27019
+    volumes:
+      - ./database/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./database/volume:/data/db
+
